@@ -1,0 +1,94 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.unbroken-dome.gradle-plugins:gradle-testsets-plugin:1.4.2'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+        classpath 'org.apache.cayenne.plugins:cayenne-gradle-plugin:4.0.B1'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
+    }
+}
+
+apply plugin: 'application'
+apply plugin: 'java'
+apply plugin: 'org.unbroken-dome.test-sets'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'org.apache.cayenne'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "io.bootique.bom:bootique-bom:0.23"
+    }
+}
+
+testSets {
+    integrationTest { dirName = 'integration-test' }
+}
+
+dependencies {
+    runtime "com.h2database:h2:1.4.196"
+    compile "io.bootique:bootique",
+            "io.bootique.logback:bootique-logback",
+            "io.bootique.linkrest:bootique-linkrest",
+            "org.apache.derby:derby:10.10.1.1"
+    testCompile 'junit:junit:4.12'
+    integrationTestCompile 'org.assertj:assertj-core:3.8.0',
+            'io.bootique.jetty:bootique-jetty-test',
+            'io.bootique.cayenne:bootique-cayenne-test',
+            'com.jayway.jsonpath:json-path:2.3.0',
+            'com.jcabi:jcabi-http:1.17.1'
+
+}
+
+mainClassName = "org.example.sendwise.demo.App"
+description = """Money transfer API demo"""
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+project.integrationTest {
+    outputs.upToDateWhen { false }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Test) {
+    reports.html.destination = new File(project.reportsDir, name) //file("${reporting.baseDir}/${name}")
+    reports.junitXml.destination = new File(project.buildDir, "${name}-results")
+    binResultsDir = new File(reports.junitXml.destination, 'binary')
+    afterTest { desc, result ->
+        println "Executing test [${desc.className}].${desc.name} with result: ${result.resultType}"
+    }
+}
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+cayenne.defaultDataMap '/src/main/resources/sendwise.map.xml'
+compileJava.dependsOn cgen // generate cayenne classes from datamap
+
+/*test {
+    afterTest { desc, result ->
+        println "Executing test [${desc.className}].${desc.name} with result: ${result.resultType}"
+    }
+}
+
+integrationTest {
+    afterTest { desc, result ->
+        println "Executing test [${desc.className}].${desc.name} with result: ${result.resultType}"
+    }
+}*/

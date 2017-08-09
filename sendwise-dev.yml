@@ -1,0 +1,28 @@
+jdbc:
+  derby:
+    url: jdbc:derby:target/sendwisedb;create=true
+    driverClassName: org.apache.derby.jdbc.EmbeddedDriver
+    initialSize: 1
+  h2:
+    url: jdbc:h2:mem:AZ;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    initialSize: 1
+
+cayenne:
+  datasource: h2
+  createSchema: true
+
+jetty:
+  connectors:
+    - port: 1337
+
+log:
+  level: info
+  appenders:
+    - type: console
+#      logFormat: '%c{20}: %m%n'
+    - type: file
+#      logFormat: '%d %-5level [%thread] %logger : %msg%n'
+#      logFormat: '%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n'
+#      logFormat: '%c{20}: %m%n'
+      file: 'sendwise-demo.log'

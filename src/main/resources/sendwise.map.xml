@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-map xmlns="http://cayenne.apache.org/schema/9/modelMap"
+	 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xsi:schemaLocation="http://cayenne.apache.org/schema/9/modelMap http://cayenne.apache.org/schema/9/modelMap.xsd"
+	 project-version="9">
+	<property name="defaultPackage" value="org.example.sendwise.demo.persistent"/>
+	<db-entity name="Account">
+		<db-attribute name="Accno" type="VARCHAR" isMandatory="true" length="50"/>
+		<db-attribute name="Balance" type="DECIMAL" isMandatory="true" scale="2"/>
+		<db-attribute name="Currency" type="CHAR" isMandatory="true" length="3"/>
+		<db-attribute name="ID" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="Name" type="VARCHAR" isMandatory="true" length="200"/>
+	</db-entity>
+	<db-entity name="TransferRequest">
+		<db-attribute name="Amount" type="DECIMAL" isMandatory="true" scale="2"/>
+		<db-attribute name="Currency" type="CHAR" isMandatory="true" length="3"/>
+		<db-attribute name="ID" type="BIGINT" isPrimaryKey="true" isMandatory="true"/>
+		<db-attribute name="Receiver_ID" type="BIGINT" isMandatory="true"/>
+		<db-attribute name="Sender_ID" type="BIGINT" isMandatory="true"/>
+		<db-attribute name="When" type="TIMESTAMP" isMandatory="true"/>
+	</db-entity>
+	<obj-entity name="Account" className="org.example.sendwise.demo.persistent.Account" dbEntityName="Account">
+		<obj-attribute name="accno" type="java.lang.String" db-attribute-path="Accno"/>
+		<obj-attribute name="balance" type="java.math.BigDecimal" db-attribute-path="Balance"/>
+		<obj-attribute name="currency" type="java.lang.String" db-attribute-path="Currency"/>
+		<obj-attribute name="name" type="java.lang.String" db-attribute-path="Name"/>
+	</obj-entity>
+	<obj-entity name="TransferRequest" className="org.example.sendwise.demo.persistent.TransferRequest" dbEntityName="TransferRequest">
+		<obj-attribute name="amount" type="java.math.BigDecimal" db-attribute-path="Amount"/>
+		<obj-attribute name="currency" type="java.lang.String" db-attribute-path="Currency"/>
+		<obj-attribute name="when" type="java.time.LocalDateTime" db-attribute-path="When"/>
+		<post-add method-name="onPostAdd"/>
+	</obj-entity>
+	<db-relationship name="received" source="Account" target="TransferRequest" toMany="true">
+		<db-attribute-pair source="ID" target="Receiver_ID"/>
+	</db-relationship>
+	<db-relationship name="sent" source="Account" target="TransferRequest" toMany="true">
+		<db-attribute-pair source="ID" target="Sender_ID"/>
+	</db-relationship>
+	<db-relationship name="receiver" source="TransferRequest" target="Account" toMany="false">
+		<db-attribute-pair source="Receiver_ID" target="ID"/>
+	</db-relationship>
+	<db-relationship name="sender" source="TransferRequest" target="Account" toMany="false">
+		<db-attribute-pair source="Sender_ID" target="ID"/>
+	</db-relationship>
+	<obj-relationship name="received" source="Account" target="TransferRequest" deleteRule="Deny" db-relationship-path="received"/>
+	<obj-relationship name="sent" source="Account" target="TransferRequest" deleteRule="Deny" db-relationship-path="sent"/>
+	<obj-relationship name="receiver" source="TransferRequest" target="Account" deleteRule="Nullify" db-relationship-path="receiver"/>
+	<obj-relationship name="sender" source="TransferRequest" target="Account" deleteRule="Nullify" db-relationship-path="sender"/>
+</data-map>
